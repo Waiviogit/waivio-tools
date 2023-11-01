@@ -1,3 +1,4 @@
+const CryptoJS = require('crypto-js');
 const HAS = require('./hive-auth-wrapper');
 
 //  application information
@@ -67,6 +68,29 @@ const broadcastHAS = async ({
   } catch (error) {
     // if error  handle timeout broadcast
     return { error };
+  }
+};
+
+/**
+ * Makes a header payload
+ * @param {Object} auth
+ * @param {string} auth.username
+ * @param {string} auth.token
+ * @param {number} auth.expire
+ * @param {string} auth.key
+ */
+
+const makeHiveAuthHeader = (auth) => {
+  try {
+    const { username, expire } = auth;
+    const authString = JSON.stringify({ username, expire });
+    const secretKey = process.env.AUTH; // Replace with your actual secret key
+
+    const encrypted = CryptoJS.AES.encrypt(authString, secretKey);
+
+    return encrypted.toString();
+  } catch (error) {
+    return '';
   }
 };
 
