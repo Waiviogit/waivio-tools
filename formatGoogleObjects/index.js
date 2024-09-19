@@ -154,15 +154,10 @@ const main = async () => {
       userName,
       accessToken,
     });
-    if (avatar) processed.primaryImageURLs = [];
+    if (avatar) processed.primaryImageURLs = [avatar];
 
     return processed;
   }));
 
   // Request to import
 };
-
-(async () => {
-  await main();
-  console.log();
-})();
