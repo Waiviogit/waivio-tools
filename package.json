@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "auth-example": "node ./hive-auth/example.js"
+    "auth-example": "node ./hive-auth/example.js",
+    "places-api": "node ./formatGoogleObjects/index.js"
   },
   "author": "",
   "license": "ISC",
