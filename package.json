@@ -5,14 +5,16 @@
   "main": "index.js",
   "scripts": {
     "auth-example": "node ./hive-auth/example.js",
-    "places-api": "node ./formatGoogleObjects/index.js"
+    "places-api": "node ./formatGoogleObjects/index.js",
+    "url-checker": "node ./urlChecker/server.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "crypto-js": "^4.2.0",
     "uuid": "^9.0.1",
-    "ws": "^8.14.2"
+    "ws": "^8.14.2",
+    "express": "^4.19.2"
   },
   "devDependencies": {
     "eslint": "^8.36.0",
