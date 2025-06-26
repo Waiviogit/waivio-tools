@@ -24,23 +24,33 @@ const simpleHash = async (str) => {
 
 // Create hash prefix as bytes
 const getHashPrefixBytes = async (host, prefixLen = 6) => {
-  const normalized = normalizeDomain(host);
-  const baseDomain = getBaseDomain(normalized);
+  const baseDomain = normalizeDomain(host);
   const hash = await simpleHash(baseDomain);
   return hash.slice(0, prefixLen);
 };
 
+const getHostFromUrl = (url = '') => {
+  try {
+    // Clean the URL first
+    let cleanUrl = url.trim();
+
+    // Remove any trailing punctuation that might have slipped through
+    cleanUrl = cleanUrl.replace(/[*.,;:!?)\]}>"']+$/, '');
+
+    const urlObj = new URL(cleanUrl);
+    return urlObj.hostname;
+  } catch (error) {
+    console.log(`Failed to parse URL: ${url}`, error.message);
+    return null;
+  }
+};
+
 // Frontend lookup function
 const isHostSafeFrontend = async (inputUrl, redisData) => {
-  let hostname;
-  try {
-    const cleanUrl = inputUrl.trim();
-    hostname = new URL(cleanUrl).hostname;
-  } catch (e) {
-    return false;
-  }
+  const hostname = getHostFromUrl(inputUrl);
+  if (!hostname) return false;
 
-  const baseDomain = getBaseDomain(hostname);
+  const baseDomain = normalizeDomain(hostname);
   const hash = await simpleHash(baseDomain);
   const prefix = hash.slice(0, redisData.prefixLength);
 

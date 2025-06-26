@@ -4,24 +4,17 @@ const safeHosts = [
   'facebook.com',
   'my.site',
   'example-good.com',
+  'google.com',
+  'social.gifts',
   // ... up to 5000 entries
 ];
 
 // Normalize domain for consistent hashing
 const normalizeDomain = (domain) => domain.toLowerCase().trim();
 
-// Extract base domain (remove subdomains)
-const getBaseDomain = (hostname) => {
-  const normalized = normalizeDomain(hostname);
-  const parts = normalized.split('.');
-  if (parts.length <= 2) return normalized;
-  return parts.slice(-2).join('.');
-};
-
 // Create hash prefix as bytes (not hex string)
 const getHashPrefixBytes = (host, prefixLen = 6) => {
-  const normalized = normalizeDomain(host);
-  const baseDomain = getBaseDomain(normalized);
+  const baseDomain = normalizeDomain(host);
   const hash = crypto.createHash('sha256').update(baseDomain).digest();
   return hash.slice(0, prefixLen); // Return actual bytes
 };
@@ -41,17 +34,28 @@ const generateRedisData = (hosts, prefixLen = 6) => {
   };
 };
 
+const getHostFromUrl = (url = '') => {
+  try {
+    // Clean the URL first
+    let cleanUrl = url.trim();
+
+    // Remove any trailing punctuation that might have slipped through
+    cleanUrl = cleanUrl.replace(/[*.,;:!?)\]}>"']+$/, '');
+
+    const urlObj = new URL(cleanUrl);
+    return urlObj.hostname;
+  } catch (error) {
+    console.log(`Failed to parse URL: ${url}`, error.message);
+    return null;
+  }
+};
+
 // Frontend lookup function (to be used in ssr)
 const isHostSafeFrontend = (inputUrl, redisData) => {
-  let hostname;
-  try {
-    const cleanUrl = inputUrl.trim();
-    hostname = new URL(cleanUrl).hostname;
-  } catch (e) {
-    return false;
-  }
+  const hostname = getHostFromUrl(inputUrl);
+  if (!hostname) return false;
 
-  const baseDomain = getBaseDomain(hostname);
+  const baseDomain = normalizeDomain(hostname);
   const hash = crypto.createHash('sha256').update(baseDomain).digest();
   const prefix = hash.slice(0, redisData.prefixLength);
 
@@ -99,7 +103,6 @@ const redisData = generateRedisData(safeHosts);
 module.exports = {
   generateRedisData,
   isHostSafeFrontend,
-  getBaseDomain,
   normalizeDomain,
   redisData,
 };
