@@ -21,7 +21,17 @@ const getHashPrefixBytes = (host, prefixLen = 6) => {
 
 // Generate compact binary data for Redis storage
 const generateRedisData = (hosts, prefixLen = 6) => {
-  const prefixes = hosts.map((host) => getHashPrefixBytes(host, prefixLen));
+  // Use Set to deduplicate hash prefixes
+  const uniquePrefixes = new Set();
+
+  hosts.forEach((host) => {
+    const prefix = getHashPrefixBytes(host, prefixLen);
+    // Convert Buffer to string for Set comparison
+    uniquePrefixes.add(prefix.toString('base64'));
+  });
+
+  // Convert back to Buffer array
+  const prefixes = Array.from(uniquePrefixes).map((prefixStr) => Buffer.from(prefixStr, 'base64'));
 
   // Convert to base64 for Redis storage
   const buffer = Buffer.concat(prefixes);
@@ -30,7 +40,7 @@ const generateRedisData = (hosts, prefixLen = 6) => {
   return {
     data: base64Data,
     prefixLength: prefixLen,
-    count: hosts.length,
+    count: prefixes.length, // Use actual unique count
   };
 };
 
@@ -43,7 +53,11 @@ const getHostFromUrl = (url = '') => {
     cleanUrl = cleanUrl.replace(/[*.,;:!?)\]}>"']+$/, '');
 
     const urlObj = new URL(cleanUrl);
-    return urlObj.hostname;
+
+    const { hostname } = urlObj;
+
+    if (hostname.startsWith('www.')) return hostname.replace('www.', '');
+    return hostname;
   } catch (error) {
     console.log(`Failed to parse URL: ${url}`, error.message);
     return null;

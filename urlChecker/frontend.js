@@ -38,7 +38,11 @@ const getHostFromUrl = (url = '') => {
     cleanUrl = cleanUrl.replace(/[*.,;:!?)\]}>"']+$/, '');
 
     const urlObj = new URL(cleanUrl);
-    return urlObj.hostname;
+
+    const { hostname } = urlObj;
+
+    if (hostname.startsWith('www.')) return hostname.replace('www.', '');
+    return hostname;
   } catch (error) {
     console.log(`Failed to parse URL: ${url}`, error.message);
     return null;
